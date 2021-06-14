@@ -1,0 +1,195 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# # scrapping using Selenium
+
+# ome characteristics of HTML scraping with Selenium it: (b) can handle javascript, (c) get HTML back after the Javascript has been rendered, (d) can behave like a person, though it (a) can be slow.
+# 
+# Requirements (one of the below):
+# 
+# Firefox + geckodriver (https://github.com/mozilla/geckodriver/releases)
+# Chrome + chromedriver (https://sites.google.com/a/chromium.org/chromedriver/)
+
+# In[1]:
+
+
+get_ipython().system('pip install selenium')
+
+
+# In[1]:
+
+
+
+import selenium.webdriver
+import time
+import pandas as pd
+
+
+# In[2]:
+
+
+'''                                             
+- Install selenium 
+- download Chrome WebDriver from https://sites.google.com/a/chromium.org/chromedriver/home if you are using chrome and put it in the some locatin of your program
+geckodriver if you are using firefox
+  '''
+  
+#importation
+import csv
+from bs4 import BeautifulSoup as bs
+import requests
+import selenium as se
+
+
+# In[13]:
+
+
+search_query ='https://treeherder.mozilla.org/jobs?repo=mozilla-inbound'#'https://www.indeed.com/q-data-scientist-jobs.html'#'https://www.nba.com/stats/players/traditional/?sort=PTS&dir=-1'
+
+
+# In[14]:
+
+
+req = requests.get(search_query)
+
+
+# In[15]:
+
+
+req.text
+
+
+# In[16]:
+
+
+# Open the driver (change the executable path to geckodriver_mac.exe or geckodriver.exe)
+driver = selenium.webdriver.Chrome(executable_path="D:\S4\Datamining\chromedriver.exe")
+
+
+# In[17]:
+
+
+driver.get(search_query)
+
+
+# In[20]:
+
+
+driver.page_source 
+
+
+# In[21]:
+
+
+soup = bs(driver.page_source, "html.parser")
+soup
+
+
+# In[50]:
+
+
+data=soup.findAll("div",{"class":"push"})
+data
+#la list data contient tous les class contenant le mot "push ", ainsi la class class="row push clearfix se repete 
+#deux fois, pour eleminer ces elements, on remarque qu'ils se posionnent dans les indices impaire. 
+data_clean = [data[i]for i in range(20) if i%2 == 0]
+
+
+# In[52]:
+
+
+len(data_clean)
+
+
+# In[53]:
+
+
+for item in data_clean:
+    pass
+item
+
+
+# In[54]:
+
+
+fname="treeherder_out.csv"
+rowName=['revision_id','push_author','title']
+
+
+# In[62]:
+
+
+revision_id=item.find("span", {"class":"pr-1 text-nowrap"}).find("a").text
+revision_id
+
+
+# In[69]:
+
+
+push_author=item.find_all("span",{"class":"text-nowrap"})[1].get('title')
+push_author
+
+
+# In[77]:
+
+
+title=item.find("span", {"class":"revision-comment"}).contents[0].find("span",{"class":"Linkify"}).find("a").contents[0]
+title
+
+                
+
+
+# In[79]:
+
+
+for item in data_clean :
+    date = item.find("div", {"class":"push-bar"}).find("span").find('a').text
+    print(date)
+
+
+# In[74]:
+
+
+with open(fname, 'w',  encoding="UTF-8") as output:
+        writer = csv.writer(output, lineterminator='\n', delimiter=',')
+        writer.writerow(['revision_id','push_author','title','date'])
+        print ("retreaving data from treeherder")
+        for item in data_clean:
+            try:
+                revision_id=item.find("span", {"class":"pr-1 text-nowrap"}).find("a").text
+                push_author=item.find_all("span",{"class":"text-nowrap"})[1].get('title')
+                title=item.find("span", {"class":"revision-comment"}).contents[0].find("span",{"class":"Linkify"}).find("a").contents[0]
+                date = item.find("div", {"class":"push-bar"}).find("span").find('a').text
+                
+                writer.writerow([revision_id,push_author,title,date])
+            except:
+                pass
+print("done")
+
+
+# In[80]:
+
+
+driver.close()
+
+
+# # Exercice
+Completer cette exemple en récuperant dans le même csv date (push date ) et le detail commit. 
+# In[ ]:
+
+
+
+
+
+# In[81]:
+
+
+df = pd.read_csv("treeherder_out.csv")
+df
+
+
+# In[ ]:
+
+
+
+
